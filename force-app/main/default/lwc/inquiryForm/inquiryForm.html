@@ -1,0 +1,67 @@
+<template>
+    <lightning-card title="고객 문의 접수" icon-name="standard:question_feed">
+        <div class="slds-p-around_medium slds-is-relative">
+            <!-- 로딩 스피너 -->
+            <template if:true={isLoading}>
+                <lightning-spinner alternative-text="처리 중..." size="medium"></lightning-spinner>
+            </template>
+
+            <!-- 입력 폼 -->
+            <div class="slds-form slds-form_stacked">
+                <lightning-input 
+                    label="고객명" 
+                    name="CustomerName__c" 
+                    value={inquiryData.CustomerName__c} 
+                    onchange={handleInputChange} 
+                    required>
+                </lightning-input>
+
+                <lightning-input 
+                    type="email" 
+                    label="이메일" 
+                    name="Email__c" 
+                    value={inquiryData.Email__c} 
+                    onchange={handleInputChange} 
+                    required>
+                </lightning-input>
+
+                <lightning-input 
+                    type="tel" 
+                    label="연락처" 
+                    name="Phone__c" 
+                    value={inquiryData.Phone__c} 
+                    onchange={handleInputChange}>
+                </lightning-input>
+
+                <lightning-combobox 
+                    label="문의 유형" 
+                    name="Category__c" 
+                    value={inquiryData.Category__c} 
+                    options={categoryOptions} 
+                    onchange={handleInputChange} 
+                    placeholder="문의 유형을 선택하세요" 
+                    required>
+                </lightning-combobox>
+
+                <lightning-textarea 
+                    label="문의 내용" 
+                    name="Content__c" 
+                    value={inquiryData.Content__c} 
+                    onchange={handleInputChange} 
+                    required>
+                </lightning-textarea>
+
+                <div class="slds-m-top_medium">
+                    <lightning-button 
+                        variant="brand" 
+                        label="문의 접수" 
+                        title="문의 접수" 
+                        onclick={handleSubmit} 
+                        class="slds-m-left_x-small" 
+                        disabled={isLoading}>
+                    </lightning-button>
+                </div>
+            </div>
+        </div>
+    </lightning-card>
+</template>
