@@ -1,0 +1,38 @@
+<template>
+    <lightning-card title="문의 목록" icon-name="standard:case">
+        <div slot="actions">
+            <lightning-button-icon 
+                icon-name="utility:refresh" 
+                variant="border-filled" 
+                alternative-text="새로고침" 
+                title="새로고침"
+                onclick={handleRefresh}>
+            </lightning-button-icon>
+        </div>
+
+        <div class="slds-p-around_medium slds-is-relative" style="height: 300px;">
+            <!-- 로딩 스피너 -->
+            <template if:true={isLoading}>
+                <lightning-spinner alternative-text="데이터 로딩 중..." size="medium"></lightning-spinner>
+            </template>
+
+            <!-- 데이터 테이블 -->
+            <template if:true={inquiries}>
+                <lightning-datatable
+                    key-field="Id"
+                    data={inquiries}
+                    columns={columns}
+                    hide-checkbox-column="true"
+                    resize-column-disabled="true">
+                </lightning-datatable>
+            </template>
+
+            <!-- 데이터 없음 메시지 -->
+            <template if:true={isDataEmpty}>
+                <div class="slds-align_absolute-center slds-m-top_large">
+                    <p>조회된 문의 내역이 없습니다.</p>
+                </div>
+            </template>
+        </div>
+    </lightning-card>
+</template>

@@ -1,0 +1,301 @@
+ > Sprint 3 - 문의 목록 조회 기능을 개발
+✦ Sprint 3 - 문의 목록 조회 기능 개발을 시작하겠습니다.
+
+  이번 스프린트의 목표는 사용자가 접수한 문의 내역을 목록 형태로 확인하는 것입니다.
+
+
+  📋 작업 내역
+   1. Apex Controller 수정: InquiryController에 문의 목록을 조회하는 getInquiryList 메서드 추가
+   2. LWC 컴포넌트 생성: lightning-datatable을 사용하여 문의 목록을 표시하는 inquiryList 컴포넌트 개발
+
+  ---
+
+  1. InquiryController.cls 수정
+  먼저 기존 컨트롤러에 목록 조회 메서드를 추가하겠습니다.
+
+
+╭──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ ✓  ReadFile force-app/.../InquiryController.cls                                                                                                                                                                                  │
+│                                                                                                                                                                                                                                  │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+✦ InquiryController에 문의 목록 조회 기능을 추가하고, 이를 화면에 표시할 inquiryList LWC 컴포넌트를 생성하겠습니다.
+
+  1. InquiryController.cls 수정
+  getInquiryList 메서드를 추가하여 최근 생성된 문의 순으로 목록을 반환합니다.
+
+
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+✦ 죄송합니다. Plan Mode에서는 소스 코드를 직접 수정할 수 없습니다. 먼저 구현 계획을 작성하겠습니다.
+
+  Sprint 3: 문의 목록 조회 기능 구현 계획
+
+
+   1. Objective: 사용자가 접수한 문의 내역을 최신순으로 확인할 수 있도록 합니다.
+   2. Files to Modify/Create:
+       * force-app/main/default/classes/InquiryController.cls: getInquiryList 메서드 추가
+       * force-app/main/default/lwc/inquiryList/: 새로운 LWC 컴포넌트 생성 (html, js, meta.xml)
+   3. Implementation Details:
+       * Apex: InquiryController.getInquiryList는 Inquiry__c 레코드를 CreatedDate DESC 기준으로 조회합니다. (최대 100건)
+       * LWC: lightning-datatable을 사용하여 목록을 표시합니다. 컬럼: 문의번호(Name), 고객명, 유형, 상태, 접수일시.
+       * Refresh: 우측 상단에 새로고침 버튼을 배치하여 데이터를 갱신할 수 있도록 합니다.
+
+  계획 파일을 생성하겠습니다.
+
+
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+✦ Sprint 3 "문의 목록 조회 기능" 구현 계획을 작성했습니다.
+
+
+  📝 계획 요약
+   1. InquiryController.cls 수정:
+       * getInquiryList 메서드 추가 (최신순 100건 조회, cacheable=true)
+   2. inquiryList LWC 생성:
+       * lightning-datatable을 사용하여 목록 표시
+       * 컬럼: 문의번호, 고객명, 유형, 상태, 접수일시
+       * 새로고침 버튼 추가 (refreshApex 사용)
+
+  이 계획대로 진행해도 될까요?
+
+
+╭──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ ✓  Exit Plan Mode Requesting plan approval for: /Users/kingmin/.gemini/tmp/ai-force/67d83981-799b-468a-8caf-b2e29ebd0243/plans/sprint-3-inquiry-list.md                                                                          │
+│                                                                                                                                                                                                                                  │
+│ Plan approved: /Users/kingmin/.gemini/tmp/ai-force/67d83981-799b-468a-8caf-b2e29ebd0243/plans/sprint-3-inquiry-list.md                                                                                                           │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+✦ 1. Plan 파일 읽기
+  승인된 계획을 확인합니다.
+
+
+╭──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ ✓  ReadFile ../.../sprint-3-inquiry-list.md                                                                                                                                                                                      │
+│                                                                                                                                                                                                                                  │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+✦ 2. InquiryController.cls 수정
+  getInquiryList 메서드를 추가합니다.
+
+
+╭──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ ✓  Edit force-app/.../InquiryController.cls:         ... =>         ...                                                                                                                                                          │
+│                                                                                                                                                                                                                                  │
+│ 66               throw new AuraHandledException('올바른 이메일 형식이 아닙니다. (예: example@mail.com)');                                                                                                                        │
+│ 67           }                                                                                                                                                                                                                   │
+│ 68       }                                                                                                                                                                                                                       │
+│ 69 +                                                                                                                                                                                                                             │
+│ 70 +     /**                                                                                                                                                                                                                     │
+│ 71 +      * @description 문의 목록을 조회합니다. (Sprint 3)                                                                                                                                                                      │
+│ 72 +      * @return 최근 생성된 순서로 정렬된 Inquiry__c 목록                                                                                                                                                                    │
+│ 73 +      */                                                                                                                                                                                                                     │
+│ 74 +     @AuraEnabled(cacheable=true)                                                                                                                                                                                            │
+│ 75 +     public static List<Inquiry__c> getInquiryList() {                                                                                                                                                                       │
+│ 76 +         try {                                                                                                                                                                                                               │
+│ 77 +             return [                                                                                                                                                                                                        │
+│ 78 +                 SELECT Id, Name, CustomerName__c, Category__c, Status__c, CreatedDate                                                                                                                                       │
+│ 79 +                 FROM Inquiry__c                                                                                                                                                                                             │
+│ 80 +                 ORDER BY CreatedDate DESC                                                                                                                                                                                   │
+│ 81 +                 LIMIT 100                                                                                                                                                                                                   │
+│ 82 +             ];                                                                                                                                                                                                              │
+│ 83 +         } catch (Exception e) {                                                                                                                                                                                             │
+│ 84 +             throw new AuraHandledException(e.getMessage());                                                                                                                                                                 │
+│ 85 +         }                                                                                                                                                                                                                   │
+│ 86 +     }                                                                                                                                                                                                                       │
+│ 87   }                                                                                                                                                                                                                           │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+✦ 3. inquiryList LWC 생성
+  HTML, JS, Meta XML 파일을 생성합니다.
+
+
+  3-1. inquiryList.html
+  lightning-card와 lightning-datatable을 사용하여 UI를 구성합니다.
+
+
+╭──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ ✓  WriteFile Writing to force-app/.../inquiryList.html                                                                                                                                                                           │
+│                                                                                                                                                                                                                                  │
+│  1 <template>                                                                                                                                                                                                                    │
+│  2     <lightning-card title="문의 목록" icon-name="standard:case">                                                                                                                                                              │
+│  3         <div slot="actions">                                                                                                                                                                                                  │
+│  4             <lightning-button-icon                                                                                                                                                                                            │
+│  5                 icon-name="utility:refresh"                                                                                                                                                                                   │
+│  6                 variant="border-filled"                                                                                                                                                                                       │
+│  7                 alternative-text="새로고침"                                                                                                                                                                                   │
+│  8                 title="새로고침"                                                                                                                                                                                              │
+│  9                 onclick={handleRefresh}>                                                                                                                                                                                      │
+│ 10             </lightning-button-icon>                                                                                                                                                                                          │
+│ 11         </div>                                                                                                                                                                                                                │
+│ 12                                                                                                                                                                                                                               │
+│ 13         <div class="slds-p-around_medium slds-is-relative" style="height: 300px;">                                                                                                                                            │
+│ 14             <!-- 로딩 스피너 -->                                                                                                                                                                                              │
+│ 15             <template if:true={isLoading}>                                                                                                                                                                                    │
+│ 16                 <lightning-spinner alternative-text="데이터 로딩 중..." size="medium"></lightning-spinner>                                                                                                                    │
+│ 17             </template>                                                                                                                                                                                                       │
+│ 18                                                                                                                                                                                                                               │
+│ 19             <!-- 데이터 테이블 -->                                                                                                                                                                                            │
+│ 20             <template if:true={inquiries}>                                                                                                                                                                                    │
+│ 21                 <lightning-datatable                                                                                                                                                                                          │
+│ 22                     key-field="Id"                                                                                                                                                                                            │
+│ 23                     data={inquiries}                                                                                                                                                                                          │
+│ 24                     columns={columns}                                                                                                                                                                                         │
+│ 25                     hide-checkbox-column="true"                                                                                                                                                                               │
+│ 26                     resize-column-disabled="true">                                                                                                                                                                            │
+│ 27                 </lightning-datatable>                                                                                                                                                                                        │
+│ 28             </template>                                                                                                                                                                                                       │
+│ 29                                                                                                                                                                                                                               │
+│ 30             <!-- 데이터 없음 메시지 -->                                                                                                                                                                                       │
+│ 31             <template if:true={isDataEmpty}>                                                                                                                                                                                  │
+│ 32                 <div class="slds-align_absolute-center slds-m-top_large">                                                                                                                                                     │
+│ 33                     <p>조회된 문의 내역이 없습니다.</p>                                                                                                                                                                       │
+│ 34                 </div>                                                                                                                                                                                                        │
+│ 35             </template>                                                                                                                                                                                                       │
+│ 36         </div>                                                                                                                                                                                                                │
+│ 37     </lightning-card>                                                                                                                                                                                                         │
+│ 38 </template>                                                                                                                                                                                                                   │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+✦ 3-2. inquiryList.js
+  Apex 메서드를 호출하고 데이터를 처리합니다. refreshApex를 사용하여 새로고침 기능을 구현합니다.
+
+
+╭──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ ✓  WriteFile Writing to force-app/.../inquiryList.js                                                                                                                                                                             │
+│                                                                                                                                                                                                                                  │
+│  1 import { LightningElement, wire, track } from 'lwc';                                                                                                                                                                          │
+│  2 import { refreshApex } from '@salesforce/apex';                                                                                                                                                                               │
+│  3 import { ShowToastEvent } from 'lightning/platformShowToastEvent';                                                                                                                                                            │
+│  4 import getInquiryList from '@salesforce/apex/InquiryController.getInquiryList';                                                                                                                                               │
+│  5                                                                                                                                                                                                                               │
+│  6 // 데이터 테이블 컬럼 정의                                                                                                                                                                                                    │
+│  7 const COLUMNS = [                                                                                                                                                                                                             │
+│  8     { label: '문의 번호', fieldName: 'Name', type: 'text', initialWidth: 120 },                                                                                                                                               │
+│  9     { label: '고객명', fieldName: 'CustomerName__c', type: 'text', initialWidth: 120 },                                                                                                                                       │
+│ 10     { label: '유형', fieldName: 'Category__c', type: 'text', initialWidth: 120 },                                                                                                                                             │
+│ 11     {                                                                                                                                                                                                                         │
+│ 12         label: '상태',                                                                                                                                                                                                        │
+│ 13         fieldName: 'Status__c',                                                                                                                                                                                               │
+│ 14         type: 'text',                                                                                                                                                                                                         │
+│ 15         initialWidth: 100,                                                                                                                                                                                                    │
+│ 16         cellAttributes: {                                                                                                                                                                                                     │
+│ 17             class: { fieldName: 'statusClass' } // 상태별 색상 적용을 위한 클래스 (선택 사항)                                                                                                                                 │
+│ 18         }                                                                                                                                                                                                                     │
+│ 19     },                                                                                                                                                                                                                        │
+│ 20     {                                                                                                                                                                                                                         │
+│ 21         label: '접수일시',                                                                                                                                                                                                    │
+│ 22         fieldName: 'CreatedDate',                                                                                                                                                                                             │
+│ 23         type: 'date',                                                                                                                                                                                                         │
+│ 24         typeAttributes: {                                                                                                                                                                                                     │
+│ 25             year: 'numeric',                                                                                                                                                                                                  │
+│ 26             month: '2-digit',                                                                                                                                                                                                 │
+│ 27             day: '2-digit',                                                                                                                                                                                                   │
+│ 28             hour: '2-digit',                                                                                                                                                                                                  │
+│ 29             minute: '2-digit'                                                                                                                                                                                                 │
+│ 30         }                                                                                                                                                                                                                     │
+│ 31     }                                                                                                                                                                                                                         │
+│ 32 ];                                                                                                                                                                                                                            │
+│ 33                                                                                                                                                                                                                               │
+│ 34 export default class InquiryList extends LightningElement {                                                                                                                                                                   │
+│ 35     @track inquiries = [];                                                                                                                                                                                                    │
+│ 36     @track isLoading = true;                                                                                                                                                                                                  │
+│ 37     @track columns = COLUMNS;                                                                                                                                                                                                 │
+│ 38                                                                                                                                                                                                                               │
+│ 39     wiredInquiryResult; // refreshApex를 위한 와이어 결과 저장                                                                                                                                                                │
+│ 40                                                                                                                                                                                                                               │
+│ 41     // Apex 메서드 호출                                                                                                                                                                                                       │
+│ 42     @wire(getInquiryList)                                                                                                                                                                                                     │
+│ 43     wiredInquiries(result) {                                                                                                                                                                                                  │
+│ 44         this.wiredInquiryResult = result;                                                                                                                                                                                     │
+│ 45         const { data, error } = result;                                                                                                                                                                                       │
+│ 46                                                                                                                                                                                                                               │
+│ 47         if (data) {                                                                                                                                                                                                           │
+│ 48             this.inquiries = data;                                                                                                                                                                                            │
+│ 49             this.isLoading = false;                                                                                                                                                                                           │
+│ 50         } else if (error) {                                                                                                                                                                                                   │
+│ 51             this.showToast('에러', '데이터를 불러오는 중 오류가 발생했습니다.', 'error');                                                                                                                                     │
+│ 52             this.isLoading = false;                                                                                                                                                                                           │
+│ 53             console.error('Error fetching inquiries:', error);                                                                                                                                                                │
+│ 54         }                                                                                                                                                                                                                     │
+│ 55     }                                                                                                                                                                                                                         │
+│ 56                                                                                                                                                                                                                               │
+│ 57     // 데이터 존재 여부 확인                                                                                                                                                                                                  │
+│ 58     get isDataEmpty() {                                                                                                                                                                                                       │
+│ 59         return !this.isLoading && (!this.inquiries || this.inquiries.length === 0);                                                                                                                                           │
+│ 60     }                                                                                                                                                                                                                         │
+│ 61                                                                                                                                                                                                                               │
+│ 62     // 새로고침 버튼 핸들러                                                                                                                                                                                                   │
+│ 63     async handleRefresh() {                                                                                                                                                                                                   │
+│ 64         this.isLoading = true;                                                                                                                                                                                                │
+│ 65         try {                                                                                                                                                                                                                 │
+│ 66             await refreshApex(this.wiredInquiryResult);                                                                                                                                                                       │
+│ 67             // this.showToast('성공', '목록이 갱신되었습니다.', 'success'); // 너무 잦은 토스트는 사용자 경험 저하 가능성 있음                                                                                                │
+│ 68         } catch (error) {                                                                                                                                                                                                     │
+│ 69             this.showToast('에러', '새로고침 중 오류가 발생했습니다.', 'error');                                                                                                                                              │
+│ 70         } finally {                                                                                                                                                                                                           │
+│ 71             this.isLoading = false;                                                                                                                                                                                           │
+│ 72         }                                                                                                                                                                                                                     │
+│ 73     }                                                                                                                                                                                                                         │
+│ 74                                                                                                                                                                                                                               │
+│ 75     // 공통 토스트 메시지                                                                                                                                                                                                     │
+│ 76     showToast(title, message, variant) {                                                                                                                                                                                      │
+│ 77         this.dispatchEvent(                                                                                                                                                                                                   │
+│ 78             new ShowToastEvent({                                                                                                                                                                                              │
+│ 79                 title: title,                                                                                                                                                                                                 │
+│ 80                 message: message,                                                                                                                                                                                             │
+│ 81                 variant: variant                                                                                                                                                                                              │
+│ 82             })                                                                                                                                                                                                                │
+│ 83         );                                                                                                                                                                                                                    │
+│ 84     }                                                                                                                                                                                                                         │
+│ 85 }                                                                                                                                                                                                                             │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+✦ 3-3. inquiryList.js-meta.xml
+  컴포넌트를 앱 페이지, 레코드 페이지, 홈 페이지에 노출시킵니다.
+
+
+╭──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ ✓  WriteFile Writing to forc.../.../inquiryList.js-meta.xml                                                                                                                                                                      │
+│                                                                                                                                                                                                                                  │
+│  1 <?xml version="1.0" encoding="UTF-8"?>                                                                                                                                                                                        │
+│  2 <LightningComponentBundle xmlns="http://soap.sforce.com/2006/04/metadata">                                                                                                                                                    │
+│  3     <apiVersion>59.0</apiVersion>                                                                                                                                                                                             │
+│  4     <isExposed>true</isExposed>                                                                                                                                                                                               │
+│  5     <masterLabel>Inquiry List</masterLabel>                                                                                                                                                                                   │
+│  6     <description>고객 문의 목록을 표시하는 컴포넌트입니다.</description>                                                                                                                                                      │
+│  7     <targets>                                                                                                                                                                                                                 │
+│  8         <target>lightning__AppPage</target>                                                                                                                                                                                   │
+│  9         <target>lightning__RecordPage</target>                                                                                                                                                                                │
+│ 10         <target>lightning__HomePage</target>                                                                                                                                                                                  │
+│ 11     </targets>                                                                                                                                                                                                                │
+│ 12 </LightningComponentBundle>                                                                                                                                                                                                   │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+✦ 4. 배포
+╭──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ ✓  Shell sf project deploy start -d force-app/main/default/classes/InquiryController.cls force-app/main/default/lwc/inquiryList [current working directory /Users/kingmin/IdeaProjects/AI-Force] (Deploying updated InquiryCont… │
+│                                                                                                                                                                                                                                  │
+│ ... first 15 lines hidden (Ctrl+O to show) ...                                                                                                                                                                                   │
+│  Target Org: mjkim@brave-panda-fttx90.com                                                                                                                                                                                        │
+│  Elapsed Time: 6m 44.85s                                                                                                                                                                                                         │
+│                                                                                                                                                                                                                                  │
+│                                                                                                                                                                                                                                  │
+│ Deployed Source                                                                                                                                                                                                                  │
+│ ┌─────────┬───────────────────┬──────────────────────────┬────────────────────────────────────────────────────────────────┐                                                                                                      │
+│ │ State   │ Name              │ Type                     │ Path                                                           │                                                                                                      │
+│ ├─────────┼───────────────────┼──────────────────────────┼────────────────────────────────────────────────────────────────┤                                                                                                      │
+│ │ Changed │ InquiryController │ ApexClass                │ force-app/main/default/classes/InquiryController.cls           │                                                                                                      │
+│ │ Changed │ InquiryController │ ApexClass                │ force-app/main/default/classes/InquiryController.cls-meta.xml  │                                                                                                      │
+│ │ Created │ inquiryList       │ LightningComponentBundle │ force-app/main/default/lwc/inquiryList/inquiryList.html        │                                                                                                      │
+│ │ Created │ inquiryList       │ LightningComponentBundle │ force-app/main/default/lwc/inquiryList/inquiryList.js          │                                                                                                      │
+│ │ Created │ inquiryList       │ LightningComponentBundle │ force-app/main/default/lwc/inquiryList/inquiryList.js-meta.xml │                                                                                                      │
+│ └─────────┴───────────────────┴──────────────────────────┴────────────────────────────────────────────────────────────────┘                                                                                                      │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+✦ Sprint 3 - 문의 목록 조회 기능 개발이 완료되었습니다.
+
+
+  📋 작업 상세
+   1. InquiryController.cls:
+       * getInquiryList 메서드 추가: 최근 생성된 문의 100건을 조회하여 반환합니다. (@AuraEnabled(cacheable=true) 적용)
+   2. inquiryList LWC:
+       * 문의 목록을 lightning-datatable로 표시하는 컴포넌트를 생성했습니다.
+       * 우측 상단에 새로고침 버튼을 추가하여 데이터를 최신 상태로 갱신할 수 있습니다.
+       * 데이터 로딩 중에는 스피너가 표시되고, 데이터가 없을 경우 안내 메시지가 출력됩니다.
+
+
+  🚀 다음 단계
+   1. 화면 구성: Lightning App Builder를 사용하여 Inquiry List 컴포넌트를 Home Page 또는 원하는 페이지에 배치하세요.
+   2. 통합 테스트: Inquiry Form에서 새 문의를 등록하고, Inquiry List에서 새로고침 버튼을 눌러 목록에 추가되는지 확인해 보세요.
+   3. 다음 스프린트: Sprint 4 - 상태 변경 및 상세 보기 기능으로 진행할까요?

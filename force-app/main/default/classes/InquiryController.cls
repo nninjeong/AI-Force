@@ -66,4 +66,22 @@ public with sharing class InquiryController {
             throw new AuraHandledException('올바른 이메일 형식이 아닙니다. (예: example@mail.com)');
         }
     }
+
+    /**
+     * @description 문의 목록을 조회합니다. (Sprint 3)
+     * @return 최근 생성된 순서로 정렬된 Inquiry__c 목록
+     */
+    @AuraEnabled(cacheable=true)
+    public static List<Inquiry__c> getInquiryList() {
+        try {
+            return [
+                SELECT Id, Name, CustomerName__c, Category__c, Status__c, CreatedDate 
+                FROM Inquiry__c 
+                ORDER BY CreatedDate DESC 
+                LIMIT 100
+            ];
+        } catch (Exception e) {
+            throw new AuraHandledException(e.getMessage());
+        }
+    }
 }
