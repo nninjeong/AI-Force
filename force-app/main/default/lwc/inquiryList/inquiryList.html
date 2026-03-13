@@ -23,7 +23,10 @@
                     data={inquiries}
                     columns={columns}
                     hide-checkbox-column="true"
-                    resize-column-disabled="true">
+                    resize-column-disabled="true"
+                    draft-values={draftValues}
+                    onsave={handleSave}
+                    onrowaction={handleRowAction}>
                 </lightning-datatable>
             </template>
 

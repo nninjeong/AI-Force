@@ -1,0 +1,493 @@
+> Lightning App Builder를 사용하여 Inquiry List 컴포넌트를 Home Page 배치 후
+    Sprint 4 - 상태 변경 및 상세 보기 기능으로 진행
+✦ Sprint 4 - 상태 변경 및 상세 보기 기능 구현 계획을 작성하겠습니다.
+
+  Sprint 4: Inquiry Status Update & Detail Navigation Implementation Plan
+
+  Objective
+  Allow users to update the status of inquiries directly from the list and view detailed information.
+
+
+  User Stories
+   - US-09: As a user, I want to update the status of an inquiry directly in the list (Inline Editing).
+   - US-10: As a user, I want to click on an inquiry to view its full details (Navigate to Record Page).
+
+  Technical Scope
+
+
+  1. Apex Controller Update (InquiryController.cls)
+   - Add @AuraEnabled method updateInquiries(Object data) to handle inline edits from lightning-datatable.
+   - Method should accept a list of Inquiry__c (or generic Object cast to list) and perform update.
+   - Handle DmlException and return void/status.
+
+
+  2. LWC Component Update (inquiryList)
+   - inquiryList.js:
+       - Update COLUMNS:
+           - Make Status__c column editable: true.
+           - Change Name column type to button or url to allow navigation, OR add a Row Action "View Details".
+           - Decision: Use type: 'button' with label Name field value, or standard Row Actions. Let's use Row Actions for "View Details" to keep the table clean, and standard Inline Edit for Status.
+       - Implement handleSave(event):
+           - Extract draft values.
+           - Call updateInquiries Apex method.
+           - On success: Show Toast, clear draft values, refresh data (refreshApex).
+       - Implement handleRowAction(event):
+           - If action is 'view_details', use `NavigationMixin` to navigate to the `Inquiry__c` record page.
+   - inquiryList.html:
+       - Update lightning-datatable attributes:
+           - draft-values={draftValues}
+           - onsave={handleSave}
+           - onrowaction={handleRowAction}
+
+
+  Verification
+   1. Deploy updated Apex and LWC.
+   2. Open Inquiry List.
+   3. Test Status Update: Double-click the "Status" field of a row, change the value, and click "Save". Verify the change persists.
+   4. Test Navigation: Click the "View Details" action on a row. Verify redirection to the Inquiry record page.
+
+  계획 파일을 생성하겠습니다.
+
+
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+✦ Sprint 4 "문의 상태 변경 및 상세 보기 기능" 구현 계획을 생성했습니다.
+
+
+  📝 계획 요약
+   1. InquiryController.cls:
+       * updateInquiries 메서드 추가 (인라인 편집용)
+   2. inquiryList LWC:
+       * Status__c 컬럼을 인라인 편집 가능하도록 수정
+       * onsave 이벤트 핸들러 구현 (변경 사항 저장)
+       * Row Action 컬럼 추가 ("상세 보기" 버튼)
+       * NavigationMixin을 사용하여 레코드 페이지로 이동 구현
+
+  이 계획대로 진행해도 될까요?
+
+
+╭──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ ✓  Exit Plan Mode Requesting plan approval for: /Users/kingmin/.gemini/tmp/ai-force/67d83981-799b-468a-8caf-b2e29ebd0243/plans/sprint-4-status-update.md                                                                         │
+│                                                                                                                                                                                                                                  │
+│ Plan approved: /Users/kingmin/.gemini/tmp/ai-force/67d83981-799b-468a-8caf-b2e29ebd0243/plans/sprint-4-status-update.md                                                                                                          │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+✦ 1. Plan 파일 읽기
+  승인된 계획을 확인합니다.
+
+
+╭──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ ✓  ReadFile ../.../sprint-4-status-update.md                                                                                                                                                                                     │
+│                                                                                                                                                                                                                                  │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+✦ 2. InquiryController.cls 수정
+  updateInquiries 메서드를 추가합니다.
+
+
+╭──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ ✓  Edit force-app/.../InquiryController.cls:             return [... =>             return [...                                                                                                                                  │
+│                                                                                                                                                                                                                                  │
+│  84               throw new AuraHandledException(e.getMessage());                                                                                                                                                                │
+│  85           }                                                                                                                                                                                                                  │
+│  86       }                                                                                                                                                                                                                      │
+│  87 +                                                                                                                                                                                                                            │
+│  88 +     /**                                                                                                                                                                                                                    │
+│  89 +      * @description 문의 상태 등 데이터를 수정합니다. (Sprint 4)                                                                                                                                                           │
+│  90 +      * @param data 수정할 Inquiry__c 리스트                                                                                                                                                                                │
+│  91 +      */                                                                                                                                                                                                                    │
+│  92 +     @AuraEnabled                                                                                                                                                                                                           │
+│  93 +     public static void updateInquiries(List<Inquiry__c> data) {                                                                                                                                                            │
+│  94 +         try {                                                                                                                                                                                                              │
+│  95 +             update data;                                                                                                                                                                                                   │
+│  96 +         } catch (DmlException e) {                                                                                                                                                                                         │
+│  97 +             throw new AuraHandledException('데이터 수정 중 오류가 발생했습니다: ' + e.getDmlMessage(0));                                                                                                                   │
+│  98 +         } catch (Exception e) {                                                                                                                                                                                            │
+│  99 +             throw new AuraHandledException(e.getMessage());                                                                                                                                                                │
+│ 100 +         }                                                                                                                                                                                                                  │
+│ 101 +     }                                                                                                                                                                                                                      │
+│ 102   }                                                                                                                                                                                                                          │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+✦ 3. inquiryList LWC 수정
+  NavigationMixin 적용, 컬럼 수정, onsave 및 onrowaction 핸들러를 추가합니다.
+
+  3-1. inquiryList.js 수정
+
+
+     1 import { LightningElement, wire, track } from 'lwc';
+     2 import { refreshApex } from '@salesforce/apex';
+     3 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
+     4 import { NavigationMixin } from 'lightning/navigation'; // NavigationMixin 추가
+     5 import getInquiryList from '@salesforce/apex/InquiryController.getInquiryList';
+     6 import updateInquiries from '@salesforce/apex/InquiryController.updateInquiries'; // updateInquiries 추가
+     7
+     8 // Row Actions 정의
+     9 const ACTIONS = [
+    10     { label: '상세 보기', name: 'view_details' }
+    11 ];
+    12
+    13 // 데이터 테이블 컬럼 정의
+    14 const COLUMNS = [
+    15     { label: '문의 번호', fieldName: 'Name', type: 'text', initialWidth: 120 },
+    16     { label: '고객명', fieldName: 'CustomerName__c', type: 'text', initialWidth: 120 },
+    17     { label: '유형', fieldName: 'Category__c', type: 'text', initialWidth: 120 },
+    18     {
+    19         label: '상태',
+    20         fieldName: 'Status__c',
+    21         type: 'text',
+    22         editable: true, // 인라인 편집 활성화
+    23         initialWidth: 120,
+    24         cellAttributes: {
+    25             class: { fieldName: 'statusClass' }
+    26         }
+    27     },
+    28     {
+    29         label: '접수일시',
+    30         fieldName: 'CreatedDate',
+    31         type: 'date',
+    32         initialWidth: 180,
+    33         typeAttributes: {
+    34             year: 'numeric',
+    35             month: '2-digit',
+    36             day: '2-digit',
+    37             hour: '2-digit',
+    38             minute: '2-digit'
+    39         }
+    40     },
+    41     {
+    42         type: 'action',
+    43         typeAttributes: { rowActions: ACTIONS }
+    44     }
+    45 ];
+    46
+    47 export default class InquiryList extends NavigationMixin(LightningElement) { // NavigationMixin 적용
+    48     @track inquiries = [];
+    49     @track draftValues = []; // 초안 값 저장
+    50     @track isLoading = true;
+    51     @track columns = COLUMNS;
+    52
+    53     wiredInquiryResult;
+    54
+    55     @wire(getInquiryList)
+    56     wiredInquiries(result) {
+    57         this.wiredInquiryResult = result;
+    58         const { data, error } = result;
+    59
+    60         if (data) {
+    61             this.inquiries = data;
+    62             this.isLoading = false;
+    63         } else if (error) {
+    64             this.showToast('에러', '데이터를 불러오는 중 오류가 발생했습니다.', 'error');
+    65             this.isLoading = false;
+    66         }
+    67     }
+    68
+    69     get isDataEmpty() {
+    70         return !this.isLoading && (!this.inquiries || this.inquiries.length === 0);
+    71     }
+    72
+    73     async handleRefresh() {
+    74         this.isLoading = true;
+    75         try {
+    76             await refreshApex(this.wiredInquiryResult);
+    77         } catch (error) {
+    78             this.showToast('에러', '새로고침 중 오류가 발생했습니다.', 'error');
+    79         } finally {
+    80             this.isLoading = false;
+    81         }
+    82     }
+    83
+    84     // 인라인 편집 저장 핸들러
+    85     async handleSave(event) {
+    86         const updatedFields = event.detail.draftValues;
+    87
+    88         try {
+    89             this.isLoading = true;
+    90             await updateInquiries({ data: updatedFields });
+    91
+    92             this.showToast('성공', '상태가 수정되었습니다.', 'success');
+    93
+    94             // 초안 초기화 및 데이터 갱신
+    95             this.draftValues = [];
+    96             await refreshApex(this.wiredInquiryResult);
+    97
+    98         } catch (error) {
+    99             let message = '저장 중 오류가 발생했습니다.';
+   100             if (error.body && error.body.message) {
+   101                 message = error.body.message;
+   102             }
+   103             this.showToast('오류', message, 'error');
+   104         } finally {
+   105             this.isLoading = false;
+   106         }
+   107     }
+   108
+   109     // Row Action 핸들러
+   110     handleRowAction(event) {
+   111         const actionName = event.detail.action.name;
+   112         const row = event.detail.row;
+   113
+   114         if (actionName === 'view_details') {
+   115             this[NavigationMixin.Navigate]({
+   116                 type: 'standard__recordPage',
+   117                 attributes: {
+   118                     recordId: row.Id,
+   119                     objectApiName: 'Inquiry__c',
+   120                     actionName: 'view'
+   121                 }
+   122             });
+   123         }
+   124     }
+   125
+   126     showToast(title, message, variant) {
+   127         this.dispatchEvent(
+   128             new ShowToastEvent({
+   129                 title: title,
+   130                 message: message,
+   131                 variant: variant
+   132             })
+   133         );
+   134     }
+   135 }
+
+  3-2. inquiryList.html 수정
+  onsave, draft-values, onrowaction 속성을 추가합니다.
+
+
+    1 <template>
+    2     <lightning-card title="문의 목록" icon-name="standard:case">
+    3         <div slot="actions">
+    4             <lightning-button-icon
+    5                 icon-name="utility:refresh"
+    6                 variant="border-filled"
+    7                 alternative-text="새로고침"
+    8                 title="새로고침"
+    9                 onclick={handleRefresh}>
+   10             </lightning-button-icon>
+   11         </div>
+   12
+   13         <div class="slds-p-around_medium slds-is-relative" style="height: 300px;">
+   14             <!-- 로딩 스피너 -->
+   15             <template if:true={isLoading}>
+   16                 <lightning-spinner alternative-text="데이터 로딩 중..." size="medium"></lightning-spinner>
+   17             </template>
+   18
+   19             <!-- 데이터 테이블 -->
+   20             <template if:true={inquiries}>
+   21                 <lightning-datatable
+   22                     key-field="Id"
+   23                     data={inquiries}
+   24                     columns={columns}
+   25                     hide-checkbox-column="true"
+   26                     resize-column-disabled="true"
+   27                     draft-values={draftValues}
+   28                     onsave={handleSave}
+   29                     onrowaction={handleRowAction}>
+   30                 </lightning-datatable>
+   31             </template>
+   32
+   33             <!-- 데이터 없음 메시지 -->
+   34             <template if:true={isDataEmpty}>
+   35                 <div class="slds-align_absolute-center slds-m-top_large">
+   36                     <p>조회된 문의 내역이 없습니다.</p>
+   37                 </div>
+   38             </template>
+   39         </div>
+   40     </lightning-card>
+   41 </template>
+
+╭──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ ✓  WriteFile Writing to force-app/.../inquiryList.js                                                                                                                                                                             │
+│                                                                                                                                                                                                                                  │
+│   1   import { LightningElement, wire, track } from 'lwc';                                                                                                                                                                       │
+│   2   import { refreshApex } from '@salesforce/apex';                                                                                                                                                                            │
+│   3   import { ShowToastEvent } from 'lightning/platformShowToastEvent';                                                                                                                                                         │
+│   4 + import { NavigationMixin } from 'lightning/navigation';                                                                                                                                                                    │
+│   5   import getInquiryList from '@salesforce/apex/InquiryController.getInquiryList';                                                                                                                                            │
+│   6 + import updateInquiries from '@salesforce/apex/InquiryController.updateInquiries';                                                                                                                                          │
+│   7                                                                                                                                                                                                                              │
+│   8 + // Row Actions 정의                                                                                                                                                                                                        │
+│   9 + const ACTIONS = [                                                                                                                                                                                                          │
+│  10 +     { label: '상세 보기', name: 'view_details' }                                                                                                                                                                           │────
+│  11 + ];                                                                                                                                                                                                                         │ 3)
+│  12 +                                                                                                                                                                                                                            │
+│  13   // 데이터 테이블 컬럼 정의                                                                                                                                                                                                 │
+│  14   const COLUMNS = [                                                                                                                                                                                                          │
+│  15       { label: '문의 번호', fieldName: 'Name', type: 'text', initialWidth: 120 },                                                                                                                                            │
+│  19           label: '상태',                                                                                                                                                                                                     │
+│  20           fieldName: 'Status__c',                                                                                                                                                                                            │
+│  21           type: 'text',                                                                                                                                                                                                      │
+│  15 -         initialWidth: 100,                                                                                                                                                                                                 │
+│ ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════ │
+│  22 +         editable: true, // 인라인 편집 활성화                                                                                                                                                                              │
+│  23 +         initialWidth: 120,                                                                                                                                                                                                 │
+│  24           cellAttributes: {                                                                                                                                                                                                  │
+│  17 -             class: { fieldName: 'statusClass' } // 상태별 색상 적용을 위한 클래스 (선택 사항)                                                                                                                              │
+│ ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════ │
+│  25 +             class: { fieldName: 'statusClass' }                                                                                                                                                                            │
+│  26           }                                                                                                                                                                                                                  │
+│  27       },                                                                                                                                                                                                                     │
+│  28       {                                                                                                                                                                                                                      │
+│  29           label: '접수일시',                                                                                                                                                                                                 │
+│  30           fieldName: 'CreatedDate',                                                                                                                                                                                          │
+│  31           type: 'date',                                                                                                                                                                                                      │
+│  32 +         initialWidth: 180,                                                                                                                                                                                                 │
+│  33           typeAttributes: {                                                                                                                                                                                                  │
+│  34               year: 'numeric',                                                                                                                                                                                               │
+│  35               month: '2-digit',                                                                                                                                                                                              │
+│  37               hour: '2-digit',                                                                                                                                                                                               │
+│  38               minute: '2-digit'                                                                                                                                                                                              │
+│  39           }                                                                                                                                                                                                                  │
+│  40 +     },                                                                                                                                                                                                                     │
+│  41 +     {                                                                                                                                                                                                                      │
+│  42 +         type: 'action',                                                                                                                                                                                                    │
+│  43 +         typeAttributes: { rowActions: ACTIONS }                                                                                                                                                                            │
+│  44       }                                                                                                                                                                                                                      │
+│  45   ];                                                                                                                                                                                                                         │
+│  46                                                                                                                                                                                                                              │
+│  34 - export default class InquiryList extends LightningElement {                                                                                                                                                                │
+│ ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════ │
+│  47 + export default class InquiryList extends NavigationMixin(LightningElement) {                                                                                                                                               │
+│  48       @track inquiries = [];                                                                                                                                                                                                 │
+│  49 +     @track draftValues = []; // 초안 값 저장                                                                                                                                                                               │
+│  50       @track isLoading = true;                                                                                                                                                                                               │
+│  51       @track columns = COLUMNS;                                                                                                                                                                                              │
+│  52                                                                                                                                                                                                                              │
+│  39 -     wiredInquiryResult; // refreshApex를 위한 와이어 결과 저장                                                                                                                                                             │
+│ ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════ │
+│  53 +     wiredInquiryResult;                                                                                                                                                                                                    │
+│  54                                                                                                                                                                                                                              │
+│  41 -     // Apex 메서드 호출                                                                                                                                                                                                    │
+│ ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════ │
+│  55       @wire(getInquiryList)                                                                                                                                                                                                  │
+│  56       wiredInquiries(result) {                                                                                                                                                                                               │
+│  57           this.wiredInquiryResult = result;                                                                                                                                                                                  │
+│  63           } else if (error) {                                                                                                                                                                                                │
+│  64               this.showToast('에러', '데이터를 불러오는 중 오류가 발생했습니다.', 'error');                                                                                                                                  │
+│  65               this.isLoading = false;                                                                                                                                                                                        │
+│  53 -             console.error('Error fetching inquiries:', error);                                                                                                                                                             │
+│ ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════ │
+│  66           }                                                                                                                                                                                                                  │
+│  67       }                                                                                                                                                                                                                      │
+│  68                                                                                                                                                                                                                              │
+│  57 -     // 데이터 존재 여부 확인                                                                                                                                                                                               │
+│ ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════ │
+│  69       get isDataEmpty() {                                                                                                                                                                                                    │
+│  70           return !this.isLoading && (!this.inquiries || this.inquiries.length === 0);                                                                                                                                        │
+│  71       }                                                                                                                                                                                                                      │
+│  72                                                                                                                                                                                                                              │
+│  62 -     // 새로고침 버튼 핸들러                                                                                                                                                                                                │
+│ ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════ │
+│  73       async handleRefresh() {                                                                                                                                                                                                │
+│  74           this.isLoading = true;                                                                                                                                                                                             │
+│  75           try {                                                                                                                                                                                                              │
+│  76               await refreshApex(this.wiredInquiryResult);                                                                                                                                                                    │
+│  67 -             // this.showToast('성공', '목록이 갱신되었습니다.', 'success'); // 너무 잦은 토스트는 사용자 경험 저하 가능성 있음                                                                                             │
+│ ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════ │
+│  77           } catch (error) {                                                                                                                                                                                                  │
+│  78               this.showToast('에러', '새로고침 중 오류가 발생했습니다.', 'error');                                                                                                                                           │
+│  79           } finally {                                                                                                                                                                                                        │
+│  81           }                                                                                                                                                                                                                  │
+│  82       }                                                                                                                                                                                                                      │
+│  83                                                                                                                                                                                                                              │
+│  75 -     // 공통 토스트 메시지                                                                                                                                                                                                  │
+│ ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════ │
+│  84 +     // 인라인 편집 저장 핸들러                                                                                                                                                                                             │
+│  85 +     async handleSave(event) {                                                                                                                                                                                              │
+│  86 +         const updatedFields = event.detail.draftValues;                                                                                                                                                                    │
+│  87 +                                                                                                                                                                                                                            │
+│  88 +         try {                                                                                                                                                                                                              │
+│  89 +             this.isLoading = true;                                                                                                                                                                                         │
+│  90 +             await updateInquiries({ data: updatedFields });                                                                                                                                                                │
+│  91 +                                                                                                                                                                                                                            │
+│  92 +             this.showToast('성공', '상태가 수정되었습니다.', 'success');                                                                                                                                                   │
+│  93 +                                                                                                                                                                                                                            │
+│  94 +             // 초안 초기화 및 데이터 갱신                                                                                                                                                                                  │
+│  95 +             this.draftValues = [];                                                                                                                                                                                         │
+│  96 +             await refreshApex(this.wiredInquiryResult);                                                                                                                                                                    │
+│  97 +                                                                                                                                                                                                                            │
+│  98 +         } catch (error) {                                                                                                                                                                                                  │
+│  99 +             let message = '저장 중 오류가 발생했습니다.';                                                                                                                                                                  │
+│ 100 +             if (error.body && error.body.message) {                                                                                                                                                                        │
+│ 101 +                 message = error.body.message;                                                                                                                                                                              │
+│ 102 +             }                                                                                                                                                                                                              │
+│ 103 +             this.showToast('오류', message, 'error');                                                                                                                                                                      │
+│ 104 +         } finally {                                                                                                                                                                                                        │
+│ 105 +             this.isLoading = false;                                                                                                                                                                                        │
+│ 106 +         }                                                                                                                                                                                                                  │
+│ 107 +     }                                                                                                                                                                                                                      │
+│ 108 +                                                                                                                                                                                                                            │
+│ 109 +     // Row Action 핸들러                                                                                                                                                                                                   │
+│ 110 +     handleRowAction(event) {                                                                                                                                                                                               │
+│ 111 +         const actionName = event.detail.action.name;                                                                                                                                                                       │
+│ 112 +         const row = event.detail.row;                                                                                                                                                                                      │
+│ 113 +                                                                                                                                                                                                                            │
+│ 114 +         if (actionName === 'view_details') {                                                                                                                                                                               │
+│ 115 +             this[NavigationMixin.Navigate]({                                                                                                                                                                               │
+│ 116 +                 type: 'standard__recordPage',                                                                                                                                                                              │
+│ 117 +                 attributes: {                                                                                                                                                                                              │
+│ 118 +                     recordId: row.Id,                                                                                                                                                                                      │
+│ 119 +                     objectApiName: 'Inquiry__c',                                                                                                                                                                           │
+│ 120 +                     actionName: 'view'                                                                                                                                                                                     │
+│ 121 +                 }                                                                                                                                                                                                          │
+│ 122 +             });                                                                                                                                                                                                            │
+│ 123 +         }                                                                                                                                                                                                                  │
+│ 124 +     }                                                                                                                                                                                                                      │
+│ 125 +                                                                                                                                                                                                                            │
+│ 126       showToast(title, message, variant) {                                                                                                                                                                                   │
+│ 127           this.dispatchEvent(                                                                                                                                                                                                │
+│ 128               new ShowToastEvent({                                                                                                                                                                                           │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+✦ 다음으로 HTML 파일을 수정합니다.
+
+
+╭──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ ✓  WriteFile Writing to force-app/.../inquiryList.html                                                                                                                                                                           │
+│                                                                                                                                                                                                                                  │
+│ 23           data={inquiries}                                                                                                                                                                                                    │
+│ 24           columns={columns}                                                                                                                                                                                                   │
+│ 25           hide-checkbox-column="true"                                                                                                                                                                                         │
+│ 26 -         resize-column-disabled="true">                                                                                                                                                                                      │
+│ 26 +         resize-column-disabled="true"                                                                                                                                                                                       │
+│ 27 +         draft-values={draftValues}                                                                                                                                                                                          │
+│ 28 +         onsave={handleSave}                                                                                                                                                                                                 │
+│ 29 +         onrowaction={handleRowAction}>                                                                                                                                                                                      │
+│ 30       </lightning-datatable>                                                                                                                                                                                                  │
+│ 31   </template>                                                                                                                                                                                                                 │
+│ 32                                                                                                                                                                                                                               │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+✦ 4. 배포
+  수정된 Apex 클래스와 LWC 컴포넌트를 배포합니다.
+
+
+╭──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ ✓  Shell sf project deploy start -d force-app/main/default/classes/InquiryController.cls force-app/main/default/lwc/inquiryList [current working directory /Users/kingmin/IdeaProjects/AI-Force] (Deploying updated InquiryCont… │
+│                                                                                                                                                                                                                                  │
+│ ... first 15 lines hidden (Ctrl+O to show) ...                                                                                                                                                                                   │
+│  Target Org: mjkim@brave-panda-fttx90.com                                                                                                                                                                                        │
+│  Elapsed Time: 3.38s                                                                                                                                                                                                             │
+│                                                                                                                                                                                                                                  │
+│                                                                                                                                                                                                                                  │
+│ Deployed Source                                                                                                                                                                                                                  │
+│ ┌─────────┬───────────────────┬──────────────────────────┬────────────────────────────────────────────────────────────────┐                                                                                                      │
+│ │ State   │ Name              │ Type                     │ Path                                                           │                                                                                                      │
+│ ├─────────┼───────────────────┼──────────────────────────┼────────────────────────────────────────────────────────────────┤                                                                                                      │
+│ │ Changed │ InquiryController │ ApexClass                │ force-app/main/default/classes/InquiryController.cls           │                                                                                                      │
+│ │ Changed │ InquiryController │ ApexClass                │ force-app/main/default/classes/InquiryController.cls-meta.xml  │                                                                                                      │
+│ │ Changed │ inquiryList       │ LightningComponentBundle │ force-app/main/default/lwc/inquiryList/inquiryList.html        │                                                                                                      │
+│ │ Changed │ inquiryList       │ LightningComponentBundle │ force-app/main/default/lwc/inquiryList/inquiryList.js          │                                                                                                      │
+│ │ Changed │ inquiryList       │ LightningComponentBundle │ force-app/main/default/lwc/inquiryList/inquiryList.js-meta.xml │                                                                                                      │
+│ └─────────┴───────────────────┴──────────────────────────┴────────────────────────────────────────────────────────────────┘                                                                                                      │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+✦ Sprint 4 "문의 상태 변경 및 상세 보기 기능" 구현을 완료했습니다.
+
+
+  📋 작업 상세
+   1. InquiryController.cls:
+       * updateInquiries 메서드를 추가하여 LWC에서 전달받은 데이터를 일괄 수정할 수 있도록 구현했습니다.
+   2. inquiryList LWC:
+       * 인라인 편집: Status__c 컬럼을 수정 가능(editable: true)하게 변경하고, onsave 핸들러를 통해 변경 사항을 저장합니다.
+       * 상세 보기: Row Action을 추가하여 각 행의 드롭다운 메뉴에서 "상세 보기"를 클릭하면 해당 레코드 페이지로 이동합니다.
+
+
+  🚀 다음 단계 (검증)
+   1. 화면 확인: Inquiry List에서 '상태(Status)' 컬럼을 더블 클릭하여 값을 변경하고 '저장' 버튼을 눌러보세요.
+   2. 상세 이동: 행의 맨 오른쪽 화살표 버튼을 클릭하고 '상세 보기'를 선택하여 레코드 페이지로 이동하는지 확인하세요.
+   3. 다음 스프린트: 기능 구현은 모두 완료되었습니다. 추가적인 리팩토링이나 테스트 코드 작성이 필요하신가요?

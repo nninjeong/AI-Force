@@ -84,4 +84,19 @@ public with sharing class InquiryController {
             throw new AuraHandledException(e.getMessage());
         }
     }
+
+    /**
+     * @description 문의 상태 등 데이터를 수정합니다. (Sprint 4)
+     * @param data 수정할 Inquiry__c 리스트
+     */
+    @AuraEnabled
+    public static void updateInquiries(List<Inquiry__c> data) {
+        try {
+            update data;
+        } catch (DmlException e) {
+            throw new AuraHandledException('데이터 수정 중 오류가 발생했습니다: ' + e.getDmlMessage(0));
+        } catch (Exception e) {
+            throw new AuraHandledException(e.getMessage());
+        }
+    }
 }

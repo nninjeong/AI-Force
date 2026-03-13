@@ -1,7 +1,14 @@
 import { LightningElement, wire, track } from 'lwc';
 import { refreshApex } from '@salesforce/apex';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
+import { NavigationMixin } from 'lightning/navigation';
 import getInquiryList from '@salesforce/apex/InquiryController.getInquiryList';
+import updateInquiries from '@salesforce/apex/InquiryController.updateInquiries';
+
+// Row Actions 정의
+const ACTIONS = [
+    { label: '상세 보기', name: 'view_details' }
+];
 
 // 데이터 테이블 컬럼 정의
 const COLUMNS = [
@@ -12,15 +19,17 @@ const COLUMNS = [
         label: '상태', 
         fieldName: 'Status__c', 
         type: 'text', 
-        initialWidth: 100,
+        editable: true, // 인라인 편집 활성화
+        initialWidth: 120,
         cellAttributes: { 
-            class: { fieldName: 'statusClass' } // 상태별 색상 적용을 위한 클래스 (선택 사항)
+            class: { fieldName: 'statusClass' }
         }
     },
     { 
         label: '접수일시', 
         fieldName: 'CreatedDate', 
         type: 'date', 
+        initialWidth: 180,
         typeAttributes: {
             year: 'numeric',
             month: '2-digit',
@@ -28,17 +37,21 @@ const COLUMNS = [
             hour: '2-digit',
             minute: '2-digit'
         }
+    },
+    {
+        type: 'action',
+        typeAttributes: { rowActions: ACTIONS }
     }
 ];
 
-export default class InquiryList extends LightningElement {
+export default class InquiryList extends NavigationMixin(LightningElement) {
     @track inquiries = [];
+    @track draftValues = []; // 초안 값 저장
     @track isLoading = true;
     @track columns = COLUMNS;
     
-    wiredInquiryResult; // refreshApex를 위한 와이어 결과 저장
+    wiredInquiryResult;
 
-    // Apex 메서드 호출
     @wire(getInquiryList)
     wiredInquiries(result) {
         this.wiredInquiryResult = result;
@@ -50,21 +63,17 @@ export default class InquiryList extends LightningElement {
         } else if (error) {
             this.showToast('에러', '데이터를 불러오는 중 오류가 발생했습니다.', 'error');
             this.isLoading = false;
-            console.error('Error fetching inquiries:', error);
         }
     }
 
-    // 데이터 존재 여부 확인
     get isDataEmpty() {
         return !this.isLoading && (!this.inquiries || this.inquiries.length === 0);
     }
 
-    // 새로고침 버튼 핸들러
     async handleRefresh() {
         this.isLoading = true;
         try {
             await refreshApex(this.wiredInquiryResult);
-            // this.showToast('성공', '목록이 갱신되었습니다.', 'success'); // 너무 잦은 토스트는 사용자 경험 저하 가능성 있음
         } catch (error) {
             this.showToast('에러', '새로고침 중 오류가 발생했습니다.', 'error');
         } finally {
@@ -72,7 +81,48 @@ export default class InquiryList extends LightningElement {
         }
     }
 
-    // 공통 토스트 메시지
+    // 인라인 편집 저장 핸들러
+    async handleSave(event) {
+        const updatedFields = event.detail.draftValues;
+        
+        try {
+            this.isLoading = true;
+            await updateInquiries({ data: updatedFields });
+            
+            this.showToast('성공', '상태가 수정되었습니다.', 'success');
+            
+            // 초안 초기화 및 데이터 갱신
+            this.draftValues = [];
+            await refreshApex(this.wiredInquiryResult);
+            
+        } catch (error) {
+            let message = '저장 중 오류가 발생했습니다.';
+            if (error.body && error.body.message) {
+                message = error.body.message;
+            }
+            this.showToast('오류', message, 'error');
+        } finally {
+            this.isLoading = false;
+        }
+    }
+
+    // Row Action 핸들러
+    handleRowAction(event) {
+        const actionName = event.detail.action.name;
+        const row = event.detail.row;
+        
+        if (actionName === 'view_details') {
+            this[NavigationMixin.Navigate]({
+                type: 'standard__recordPage',
+                attributes: {
+                    recordId: row.Id,
+                    objectApiName: 'Inquiry__c',
+                    actionName: 'view'
+                }
+            });
+        }
+    }
+
     showToast(title, message, variant) {
         this.dispatchEvent(
             new ShowToastEvent({
