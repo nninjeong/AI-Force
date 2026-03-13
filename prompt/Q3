@@ -1,0 +1,269 @@
+```
+이전에 설계한 Inquiry__c 오브젝트를 기반으로
+아래 User Story를 구현하는 Apex Controller를 작성해줘.
+
+User Story:
+- US-04: 고객이 문의를 접수하면 Inquiry__c 레코드와 Case가 동시에 생성된다
+- US-05: 이메일 형식이 잘못되거나 필수값이 없으면 한국어 에러를 반환한다
+
+조건:
+- 클래스명: InquiryController
+- with sharing 적용
+- bulkify 패턴 적용
+- AuraHandledException으로 에러 처리
+- @AuraEnabled 메서드만 public으로 노출
+```
+```
+이전에 설계한 Inquiry__c 오브젝트를 기반으로
+아래 User Story를 구현하는 Apex Controller를 작성해줘.
+
+User Story:
+- US-04: 고객이 문의를 접수하면 Inquiry__c 레코드와 Case가 동시에 생성된다
+- US-05: 이메일 형식이 잘못되거나 필수값이 없으면 한국어 에러를 반환한다
+
+조건:
+- 클래스명: InquiryController
+- with sharing 적용
+- bulkify 패턴 적용
+- AuraHandledException으로 에러 처리
+- @AuraEnabled 메서드만 public으로 노출
+```
+
+ InquiryTriggerHandler가 이미 Inquiry__c 생성 시 Case를 자동으로 생성하고 RelatedCase__c 필드를 업데이트하는 로직을 포함하고 있습니다. 따라서 InquiryController는 Inquiry__c 레코드를 삽입하는 데 집중하며, US-05에 따른 유효성 검사 및
+  에러 처리를 추가하겠습니다.
+
+
+  1. 생성할 파일 목록
+   - force-app/main/default/classes/InquiryController.cls (Apex Controller)
+   - force-app/main/default/classes/InquiryController.cls-meta.xml (Metadata)
+
+  ---
+
+
+  2. 파일별 코드
+
+  InquiryController.cls
+  Inquiry__c 레코드를 생성하고 유효성을 검사하는 컨트롤러입니다.
+
+
+    1 /**
+    2  * @description 고객 문의(Inquiry__c) 처리를 위한 Apex Controller
+    3  * @author Gemini CLI
+    4  * @version 1.0
+    5  */
+    6 public with sharing class InquiryController {
+    7
+    8     /**
+    9      * @description 신규 문의 레코드를 생성합니다.
+   10      * US-04: Inquiry__c 레코드 생성 (트리거를 통해 Case와 연결됨)
+   11      * US-05: 이메일 형식 및 필수값 유효성 검사 및 한국어 에러 반환
+   12      * @param inq 저장할 Inquiry__c 데이터
+   13      * @return 생성된 Inquiry__c 레코드의 ID
+   14      */
+   15     @AuraEnabled
+   16     public static String createInquiry(Inquiry__c inq) {
+   17         try {
+   18             // 1. 필수값 유효성 검사 (서버 사이드 검증)
+   19             validateInquiry(inq);
+   20
+   21             // 2. 레코드 삽입 (Bulkify 패턴 적용 가능하도록 리스트 처리)
+   22             List<Inquiry__c> inquiriesToInsert = new List<Inquiry__c>{ inq };
+   23             insert inquiriesToInsert;
+   24
+   25             return inquiriesToInsert[0].Id;
+   26
+   27         } catch (DmlException e) {
+   28             // DML 에러 발생 시 한국어 메시지로 변환하여 반환
+   29             throw new AuraHandledException('데이터 저장 중 오류가 발생했습니다: ' + e.getDmlMessage(0));
+   30         } catch (Exception e) {
+   31             // 기타 예외 발생 시 한국어 메시지 반환
+   32             throw new AuraHandledException(e.getMessage());
+   33         }
+   34     }
+   35
+   36     /**
+   37      * @description 문의 데이터의 유효성을 검사합니다. (US-05)
+   38      * @param inq 검사할 Inquiry__c 데이터
+   39      */
+   40     private static void validateInquiry(Inquiry__c inq) {
+   41         // 필수값 체크
+   42         if (String.isBlank(inq.CustomerName__c)) {
+   43             throw new AuraHandledException('고객명은 필수 입력 항목입니다.');
+   44         }
+   45         if (String.isBlank(inq.Email__c)) {
+   46             throw new AuraHandledException('이메일은 필수 입력 항목입니다.');
+   47         }
+   48         if (String.isBlank(inq.Category__c)) {
+   49             throw new AuraHandledException('문의 유형은 필수 선택 항목입니다.');
+   50         }
+   51         if (String.isBlank(inq.Content__c)) {
+   52             throw new AuraHandledException('문의 내용은 필수 입력 항목입니다.');
+   53         }
+   54
+   55         // 이메일 형식 체크 (정규식 활용)
+   56         String emailRegex = '^[a-zA-Z0-9._|\\\\%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,4}$';
+   57         Pattern emailPattern = Pattern.compile(emailRegex);
+   58         Matcher emailMatcher = emailPattern.matcher(inq.Email__c);
+   59
+   60         if (!emailMatcher.matches()) {
+   61             throw new AuraHandledException('올바른 이메일 형식이 아닙니다. (예: example@mail.com)');
+   62         }
+   63     }
+   64 }
+
+   1 <?xml version="1.0" encoding="UTF-8"?>
+   2 <ApexClass xmlns="http://soap.sforce.com/2006/04/metadata">
+   3     <apiVersion>59.0</apiVersion>
+   4     <status>Active</status>
+   5 </ApexClass>
+
+
+  ---
+
+  3. 배포 명령어
+  생성한 Apex 클래스를 Salesforce Org에 배포합니다.
+
+   1 sf project deploy start -d force-app/main/default/classes/InquiryController.cls
+
+  ---
+
+
+  4. 다음 단계 안내
+   1. 배포: 위의 명령어를 사용하여 컨트롤러를 배포하세요.
+   2. 테스트: 익명 Apex(Anonymous Apex)를 사용하여 InquiryController.createInquiry()를 호출해보고, 문의 레코드와 Case가 정상적으로 생성되는지 확인하세요.
+   3. LWC 개발: 이제 이 컨트롤러를 호출하여 데이터를 전송하는 프론트엔드 LWC 컴포넌트(InquiryForm)를 개발할 준비가 되었습니다. 진행을 원하시면 말씀해 주세요.
+
+ > sf project deploy start -d force-app/main/default/classes/InquiryController.cls
+✦ I'll start by creating the InquiryController class and its metadata file, then I'll execute the deployment command.
+
+  1. InquiryController.cls 생성
+  고객 문의를 처리하고 유효성을 검사하는 Apex 컨트롤러를 생성합니다.
+
+
+╭──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ ✓  WriteFile Writing to force-app/.../InquiryController.cls                                                                                                                                                                      │
+│                                                                                                                                                                                                                                  │
+│  1 /**                                                                                                                                                                                                                           │
+│  2  * @description 고객 문의(Inquiry__c) 처리를 위한 Apex Controller                                                                                                                                                             │
+│  3  * @author Gemini CLI                                                                                                                                                                                                         │
+│  4  * @version 1.0                                                                                                                                                                                                               │
+│  5  */                                                                                                                                                                                                                           │
+│  6 public with sharing class InquiryController {                                                                                                                                                                                 │
+│  7                                                                                                                                                                                                                               │
+│  8     /**                                                                                                                                                                                                                       │
+│  9      * @description 신규 문의 레코드를 생성합니다.                                                                                                                                                                            │
+│ 10      * US-04: Inquiry__c 레코드 생성 (트리거를 통해 Case와 연결됨)                                                                                                                                                            │
+│ 11      * US-05: 이메일 형식 및 필수값 유효성 검사 및 한국어 에러 반환                                                                                                                                                           │
+│ 12      * @param inq 저장할 Inquiry__c 데이터                                                                                                                                                                                    │
+│ 13      * @return 생성된 Inquiry__c 레코드의 ID                                                                                                                                                                                  │
+│ 14      */                                                                                                                                                                                                                       │
+│ 15     @AuraEnabled                                                                                                                                                                                                              │
+│ 16     public static String createInquiry(Inquiry__c inq) {                                                                                                                                                                      │
+│ 17         try {                                                                                                                                                                                                                 │
+│ 18             // 1. 필수값 유효성 검사 (서버 사이드 검증)                                                                                                                                                                       │
+│ 19             validateInquiry(inq);                                                                                                                                                                                             │
+│ 20                                                                                                                                                                                                                               │
+│ 21             // 2. 레코드 삽입 (Bulkify 패턴 적용 가능하도록 리스트 처리)                                                                                                                                                      │
+│ 22             List<Inquiry__c> inquiriesToInsert = new List<Inquiry__c>{ inq };                                                                                                                                                 │
+│ 23             insert inquiriesToInsert;                                                                                                                                                                                         │
+│ 24                                                                                                                                                                                                                               │
+│ 25             return inquiriesToInsert[0].Id;                                                                                                                                                                                   │
+│ 26                                                                                                                                                                                                                               │
+│ 27         } catch (DmlException e) {                                                                                                                                                                                            │
+│ 28             // DML 에러 발생 시 한국어 메시지로 변환하여 반환                                                                                                                                                                 │
+│ 29             throw new AuraHandledException('데이터 저장 중 오류가 발생했습니다: ' + e.getDmlMessage(0));                                                                                                                      │
+│ 30         } catch (Exception e) {                                                                                                                                                                                               │
+│ 31             // 기타 예외 발생 시 한국어 메시지 반환                                                                                                                                                                           │
+│ 32             // AuraHandledException은 getMessage()를 통해 전달된 메시지를 클라이언트에 노출함                                                                                                                                 │
+│ 33             throw new AuraHandledException(e.getMessage());                                                                                                                                                                   │
+│ 34         }                                                                                                                                                                                                                     │
+│ 35     }                                                                                                                                                                                                                         │
+│ 36                                                                                                                                                                                                                               │
+│ 37     /**                                                                                                                                                                                                                       │
+│ 38      * @description 문의 데이터의 유효성을 검사합니다. (US-05)                                                                                                                                                                │
+│ 39      * @param inq 검사할 Inquiry__c 데이터                                                                                                                                                                                    │
+│ 40      */                                                                                                                                                                                                                       │
+│ 41     private static void validateInquiry(Inquiry__c inq) {                                                                                                                                                                     │
+│ 42         if (inq == null) {                                                                                                                                                                                                    │
+│ 43             throw new AuraHandledException('입력 데이터가 없습니다.');                                                                                                                                                        │
+│ 44         }                                                                                                                                                                                                                     │
+│ 45                                                                                                                                                                                                                               │
+│ 46         // 필수값 체크                                                                                                                                                                                                        │
+│ 47         if (String.isBlank(inq.CustomerName__c)) {                                                                                                                                                                            │
+│ 48             throw new AuraHandledException('고객명은 필수 입력 항목입니다.');                                                                                                                                                 │
+│ 49         }                                                                                                                                                                                                                     │
+│ 50         if (String.isBlank(inq.Email__c)) {                                                                                                                                                                                   │
+│ 51             throw new AuraHandledException('이메일은 필수 입력 항목입니다.');                                                                                                                                                 │
+│ 52         }                                                                                                                                                                                                                     │
+│ 53         if (String.isBlank(inq.Category__c)) {                                                                                                                                                                                │
+│ 54             throw new AuraHandledException('문의 유형은 필수 선택 항목입니다.');                                                                                                                                              │
+│ 55         }                                                                                                                                                                                                                     │
+│ 56         if (String.isBlank(inq.Content__c)) {                                                                                                                                                                                 │
+│ 57             throw new AuraHandledException('문의 내용은 필수 입력 항목입니다.');                                                                                                                                              │
+│ 58         }                                                                                                                                                                                                                     │
+│ 59                                                                                                                                                                                                                               │
+│ 60         // 이메일 형식 체크 (정규식 활용)                                                                                                                                                                                     │
+│ 61         String emailRegex = '^[a-zA-Z0-9._|\\\\%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,4}$';                                                                                                                                        │
+│ 62         Pattern emailPattern = Pattern.compile(emailRegex);                                                                                                                                                                   │
+│ 63         Matcher emailMatcher = emailPattern.matcher(inq.Email__c);                                                                                                                                                            │
+│ 64                                                                                                                                                                                                                               │
+│ 65         if (!emailMatcher.matches()) {                                                                                                                                                                                        │
+│ 66             throw new AuraHandledException('올바른 이메일 형식이 아닙니다. (예: example@mail.com)');                                                                                                                          │
+│ 67         }                                                                                                                                                                                                                     │
+│ 68     }                                                                                                                                                                                                                         │
+│ 69 }                                                                                                                                                                                                                             │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+✦ 2. InquiryController.cls-meta.xml 생성
+  클래스에 대한 메타데이터 파일을 생성합니다.
+
+
+╭──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ ✓  WriteFile Writing to .../InquiryController.cls-meta.xml                                                                                                                                                                       │
+│                                                                                                                                                                                                                                  │
+│ 1 <?xml version="1.0" encoding="UTF-8"?>                                                                                                                                                                                         │
+│ 2 <ApexClass xmlns="http://soap.sforce.com/2006/04/metadata">                                                                                                                                                                    │
+│ 3     <apiVersion>59.0</apiVersion>                                                                                                                                                                                              │
+│ 4     <status>Active</status>                                                                                                                                                                                                    │
+│ 5 </ApexClass>                                                                                                                                                                                                                   │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+✦ 3. Salesforce Org 배포
+  생성한 Apex 클래스를 Salesforce Org에 배포합니다.
+
+
+╭──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ ✓  Shell sf project deploy start -d force-app/main/default/classes/InquiryController.cls [current working directory /Users/kingmin/IdeaProjects/AI-Force] (Deploying InquiryController to Salesforce Org.)                       │
+│                                                                                                                                                                                                                                  │
+│ ... first 11 lines hidden (Ctrl+O to show) ...                                                                                                                                                                                   │
+│  ✔ Done 0ms                                                                                                                                                                                                                      │
+│                                                                                                                                                                                                                                  │
+│  Status: Succeeded                                                                                                                                                                                                               │
+│  Deploy ID: 0AfNS00000dQiv00AC                                                                                                                                                                                                   │
+│  Target Org: mjkim@brave-panda-fttx90.com                                                                                                                                                                                        │
+│  Elapsed Time: 1.36s                                                                                                                                                                                                             │
+│                                                                                                                                                                                                                                  │
+│ Deployed Source                                                                                                                                                                                                                  │
+│ ┌─────────┬───────────────────┬───────────┬───────────────────────────────────────────────────────────────┐                                                                                                                      │
+│ │ State   │ Name              │ Type      │ Path                                                          │                                                                                                                      │
+│ ├─────────┼───────────────────┼───────────┼───────────────────────────────────────────────────────────────┤                                                                                                                      │
+│ │ Created │ InquiryController │ ApexClass │ force-app/main/default/classes/InquiryController.cls          │                                                                                                                      │
+│ │ Created │ InquiryController │ ApexClass │ force-app/main/default/classes/InquiryController.cls-meta.xml │                                                                                                                      │
+│ └─────────┴───────────────────┴───────────┴───────────────────────────────────────────────────────────────┘                                                                                                                      │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+✦ InquiryController Apex 클래스가 성공적으로 생성 및 배포되었습니다.
+
+
+  1. 작업 내용
+   - InquiryController.cls: US-04(레코드 생성) 및 US-05(유효성 검사 및 에러 처리)를 구현했습니다. with sharing을 적용하고, AuraHandledException을 통해 사용자에게 한국어 에러 메시지를 반환하도록 작성했습니다.
+   - InquiryController.cls-meta.xml: Salesforce API 버전 59.0을 사용하는 메타데이터 파일을 생성했습니다.
+
+
+  2. 배포 결과
+   1 sf project deploy start -d force-app/main/default/classes/InquiryController.cls
+   - 상태: Succeeded
+   - 배포된 구성 요소: InquiryController (ApexClass)
+
+
+  3. 다음 단계 안내
+   1. 유닛 테스트 작성: InquiryController의 정상 동작 및 에러 처리를 검증하기 위한 InquiryController_Test 클래스를 작성하는 것을 권장합니다.
+   2. LWC 개발: 이 컨트롤러를 호출하여 화면에서 문의를 접수하는 inquiryForm LWC 컴포넌트 개발을 진행할 수 있습니다.
+   3. 다음 작업: 테스트 클래스 작성을 먼저 진행할까요, 아니면 바로 LWC 개발로 넘어갈까요?
