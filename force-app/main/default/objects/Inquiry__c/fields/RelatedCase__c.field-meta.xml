@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>RelatedCase__c</fullName>
+    <deleteConstraint>SetNull</deleteConstraint>
+    <description>해당 문의를 통해 자동 생성된 Case와의 연결 필드입니다.</description>
+    <externalId>false</externalId>
+    <label>연결된 Case</label>
+    <referenceTo>Case</referenceTo>
+    <relationshipLabel>고객 문의</relationshipLabel>
+    <relationshipName>Inquiries</relationshipName>
+    <required>false</required>
+    <trackHistory>false</trackHistory>
+    <trackTrending>false</trackTrending>
+    <type>Lookup</type>
+</CustomField>
