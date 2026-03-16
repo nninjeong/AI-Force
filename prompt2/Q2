@@ -1,0 +1,23 @@
+Q2.
+* 고객 웹 화면 (Customer Portal)
+   * 기술 스택: Visualforce Page + Salesforce Sites
+   * 접근 방식: 로그인 없는 퍼블릭 웹 접근 (Guest User)
+   * 핵심 기능:
+       * 수리 접수: 고객 정보, 증상 입력, 파손 사진 업로드
+       * 접수 조회: 접수 번호/전화번호로 진행 상황 확인
+       * AI 연동: 사진 업로드 시 AI가 파손 부위 1차 분석 (제안)
+
+
+## answer
+✦ 고객 포털(Visualforce Page) 구현을 시작하겠습니다.
+  요구사항 중 "증상 입력"을 위한 필드가 현재 RepairOrder__c에 없어서, Description__c 필드를 추가로 생성하면서 화면 개발을 진행하겠습니다.
+
+
+
+ℹ ⚠️  Response stopped due to unexpected tool call.
+  📋 작업 내역
+   1. 필드 추가: RepairOrder__c에 증상 설명용 Description__c 필드 추가
+   2. Apex Controller: 접수 저장, 파일 업로드, 조회 로직, AI 분석(플레이스홀더) 구현
+   3. Visualforce Page: 수리 접수 폼 및 조회 화면 구현
+
+  먼저, 누락된 필드와 소스 코드를 생성합니다.

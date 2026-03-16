@@ -1,0 +1,59 @@
+<apex:page controller="RepairRequestController" showHeader="false" sidebar="false" lightningStylesheets="true" docType="html-5.0">
+    <div style="max-width: 800px; margin: 0 auto; padding: 20px;">
+        <h1 style="font-size: 24px; font-weight: bold; margin-bottom: 20px; display: block; text-align: center;">AI 수리 접수 센터</h1>
+        
+        <apex:tabPanel switchType="client" selectedTab="tabRequest" id="theTabPanel">
+            
+            <!-- 탭 1: 수리 접수 -->
+            <apex:tab label="수리 접수" name="tabRequest" id="tabRequest">
+                <apex:form enctype="multipart/form-data">
+                    <apex:pageMessages />
+                    <apex:pageBlock title="수리 신청서">
+                        <apex:pageBlockSection columns="1">
+                            <apex:inputField value="{!repairOrder.CustomerName__c}" required="true" label="고객명"/>
+                            <apex:inputField value="{!repairOrder.ContactPhone__c}" required="true" label="연락처"/>
+                            <apex:inputField value="{!repairOrder.Description__c}" required="true" label="증상 설명" style="width: 100%; height: 100px;"/>
+                            
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="파손 사진 업로드 (AI 분석용)" />
+                                <apex:inputFile value="{!fileBody}" filename="{!fileName}" />
+                            </apex:pageBlockSectionItem>
+                        </apex:pageBlockSection>
+                        
+                        <apex:pageBlockButtons location="bottom">
+                            <apex:commandButton value="접수하기" action="{!save}" styleClass="slds-button slds-button_brand"/>
+                        </apex:pageBlockButtons>
+                    </apex:pageBlock>
+                </apex:form>
+            </apex:tab>
+            
+            <!-- 탭 2: 접수 조회 -->
+            <apex:tab label="접수 조회" name="tabSearch" id="tabSearch">
+                <apex:form >
+                    <apex:pageMessages />
+                    <apex:pageBlock title="내 접수 확인">
+                        <apex:pageBlockSection columns="2">
+                            <apex:inputText value="{!searchOrderNumber}" label="접수 번호 (예: RO-0001)"/>
+                            <apex:inputText value="{!searchPhone}" label="연락처"/>
+                        </apex:pageBlockSection>
+                        <apex:pageBlockButtons location="bottom">
+                            <apex:commandButton value="조회하기" action="{!search}" reRender="searchResults"/>
+                        </apex:pageBlockButtons>
+                    </apex:pageBlock>
+                    
+                    <apex:outputPanel id="searchResults">
+                        <apex:pageBlock title="조회 결과" rendered="{!NOT(ISNULL(searchResults)) && searchResults.size > 0}">
+                            <apex:pageBlockTable value="{!searchResults}" var="ro">
+                                <apex:column value="{!ro.Name}" headerValue="접수 번호"/>
+                                <apex:column value="{!ro.CustomerName__c}" headerValue="고객명"/>
+                                <apex:column value="{!ro.Status__c}" headerValue="진행 상태"/>
+                                <apex:column value="{!ro.Description__c}" headerValue="증상"/>
+                            </apex:pageBlockTable>
+                        </apex:pageBlock>
+                    </apex:outputPanel>
+                </apex:form>
+            </apex:tab>
+            
+        </apex:tabPanel>
+    </div>
+</apex:page>
