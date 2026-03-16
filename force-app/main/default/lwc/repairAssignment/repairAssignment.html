@@ -1,0 +1,53 @@
+<template>
+    <lightning-card title="기술자 배정 관리" icon-name="standard:employee_asset">
+        <div class="slds-p-around_medium">
+            <template if:true={isLoading}>
+                <lightning-spinner alternative-text="Loading..." size="medium"></lightning-spinner>
+            </template>
+
+            <template if:true={pendingOrders.data}>
+                <table class="slds-table slds-table_bordered slds-table_cell-buffer">
+                    <thead>
+                        <tr class="slds-line-height_reset">
+                            <th scope="col">접수 번호</th>
+                            <th scope="col">고객명</th>
+                            <th scope="col">증상</th>
+                            <th scope="col">기술자 선택</th>
+                            <th scope="col">배정</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <template for:each={pendingOrders.data} for:item="order">
+                            <tr key={order.Id}>
+                                <td>{order.Name}</td>
+                                <td>{order.CustomerName__c}</td>
+                                <td class="slds-truncate" style="max-width: 200px;">{order.Description__c}</td>
+                                <td>
+                                    <lightning-combobox
+                                        name="technician"
+                                        placeholder="기술자 선택"
+                                        options={techOptions}
+                                        onchange={handleTechChange}
+                                        data-orderid={order.Id}
+                                        variant="label-hidden"
+                                    ></lightning-combobox>
+                                </td>
+                                <td>
+                                    <lightning-button 
+                                        label="배정" 
+                                        variant="brand" 
+                                        onclick={handleAssign} 
+                                        data-orderid={order.Id}
+                                    ></lightning-button>
+                                </td>
+                            </tr>
+                        </template>
+                    </tbody>
+                </table>
+            </template>
+            <template if:false={pendingOrders.data}>
+                <p>배정 대기 중인 주문이 없습니다.</p>
+            </template>
+        </div>
+    </lightning-card>
+</template>
