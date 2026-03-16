@@ -18,6 +18,7 @@
 - 커스텀 필드 및 오브젝트는 포물라는 fm_, 롤업 ru_, 체크박스 Is 로 시작하여 명명
 - Test 클래스는 테스트 대상 클래스명 + _Test 형식으로 명명 (예: AccountControllerTest)
 - Label, API 는 모두 영어로 작성, 사용자 메시지는 한국어로 작성
+- api 생성시 _ 는 넣지 말아줘. 
 
 ## 🏗️ 기술 스택
 - Platform : Salesforce (API Version 59.0)

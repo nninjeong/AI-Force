@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>RepairOrder__c</fullName>
+    <description>연결된 수리 주문입니다.</description>
+    <externalId>false</externalId>
+    <label>Repair Order</label>
+    <referenceTo>RepairOrder__c</referenceTo>
+    <relationshipLabel>Repair Diagnoses</relationshipLabel>
+    <relationshipName>RepairDiagnoses</relationshipName>
+    <relationshipOrder>0</relationshipOrder>
+    <reparentableMasterDetail>false</reparentableMasterDetail>
+    <trackHistory>false</trackHistory>
+    <trackTrending>false</trackTrending>
+    <type>MasterDetail</type>
+    <writeRequiresMasterRead>false</writeRequiresMasterRead>
+</CustomField>
